@@ -1,0 +1,11 @@
+[build]
+builder = "NIXPACKS"
+
+[variables]
+PYTHONUNBUFFERED = "1"
+
+[phases.setup]
+nixPkgs = ["python312"]
+
+[services.web]
+startCommand = "gunicorn -w 2 -k gthread -t 120 -b 0.0.0.0:${PORT} app:app"

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex h-screen">
+  <aside class="w-64 flex-shrink-0 bg-white dark:bg-zinc-800 flex flex-col p-4 border-r border-gray-200 dark:border-gray-700">
+    <div class="flex flex-col gap-4">
+      <div class="flex gap-3 items-center">
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuDS2zRpbsaPvzzR02OmshjV0nrPOGNGyInR4o_td4-xnmt2JHNDHdsMdqDAW-de1fFdRTjY119yadxO4LByaAAr98FCW06b9z_J-qS06A0IY0KOWrsEet29YoYL0sBOTI2Hzw5Ofj_Ktpqoc_VL04OLr_PPBguK9sXrNyuaCZG3E7rjdUIUmMFsQaRTZiuXTBMDAYon5d9tZGd1gkCXgQIt9aW5buE010Z8vbaD93SUCkWlr-TsS56XkFeu0akTxktUg11ue7ojwAIZ');"></div>
+        <div class="flex flex-col">
+          <h1 class="text-gray-900 dark:text-white text-base font-medium leading-normal">Rhenan</h1>
+          <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Test Tracker</p>
+        </div>
+      </div>
+      <nav class="flex flex-col gap-2 mt-4">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700" href="{{ url_for('calendar_view') }}">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <p class="text-sm font-medium leading-normal">Study Plan</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30" href="{{ url_for('simulados_view') }}">
+          <span class="material-symbols-outlined text-red-800 dark:text-red-300">bar_chart</span>
+          <p class="text-red-900 dark:text-red-200 text-sm font-bold leading-normal">Test Tracker</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700" href="{{ url_for('taf_view') }}">
+          <span class="material-symbols-outlined">fitness_center</span>
+          <p class="text-sm font-medium leading-normal">TAF Tracker</p>
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="flex flex-wrap justify-between gap-4 mb-8">
+        <div>
+          <p class="text-3xl sm:text-4xl font-black">Simulated Test Performance</p>
+          <p class="text-zinc-500">Track and analyze your test results to improve your scores.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="rounded-xl bg-white dark:bg-zinc-800 p-6 border border-zinc-700/20">
+          <p class="text-zinc-400">Average Score</p>
+          <p class="text-4xl font-bold">{{ '%.0f' % stats.avg }}%</p>
+        </div>
+        <div class="rounded-xl bg-white dark:bg-zinc-800 p-6 border border-zinc-700/20">
+          <p class="text-zinc-400">Best Score</p>
+          <p class="text-4xl font-bold text-green-500">{{ '%.0f' % stats.best }}%</p>
+        </div>
+        <div class="rounded-xl bg-white dark:bg-zinc-800 p-6 border border-zinc-700/20">
+          <p class="text-zinc-400">Worst Score</p>
+          <p class="text-4xl font-bold text-red-500">{{ '%.0f' % stats.worst }}%</p>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-zinc-800 rounded-xl p-6 mb-8 border border-zinc-700/20">
+        <h2 class="text-[22px] font-bold pb-4">Record a New Test</h2>
+        <form method="post" action="{{ url_for('simulados_add') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 items-end">
+          <label class="flex flex-col w-full">
+            <p class="text-sm font-medium pb-2">Test Date</p>
+            <input name="sdate" type="date" class="rounded-lg h-12 px-3 bg-zinc-100 dark:bg-zinc-700" />
+          </label>
+          <label class="flex flex-col w-full lg:col-span-2">
+            <p class="text-sm font-medium pb-2">Subject</p>
+            <input name="disc" type="text" class="rounded-lg h-12 px-3 bg-zinc-100 dark:bg-zinc-700" placeholder="e.g. Constitutional Law" />
+          </label>
+          <label class="flex flex-col w-full">
+            <p class="text-sm font-medium pb-2">Total Questions</p>
+            <input name="q" type="number" class="rounded-lg h-12 px-3 bg-zinc-100 dark:bg-zinc-700" placeholder="100" />
+          </label>
+          <label class="flex flex-col w-full">
+            <p class="text-sm font-medium pb-2">Correct Answers</p>
+            <input name="a" type="number" class="rounded-lg h-12 px-3 bg-zinc-100 dark:bg-zinc-700" placeholder="85" />
+          </label>
+          <button class="h-12 bg-red-600 text-white rounded-lg">Add Test Result</button>
+        </form>
+      </div>
+
+      <div class="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-700/20">
+        <div class="p-6 flex justify-between items-center border-b border-zinc-700/20">
+          <h2 class="text-[22px] font-bold">Test History</h2>
+          <input type="text" placeholder="Filter by subject..." class="rounded-lg h-10 px-3 bg-zinc-100 dark:bg-zinc-700" oninput="filterTable(this.value)">
+        </div>
+        <div class="overflow-x-auto">
+          <table id="simTable" class="w-full text-left">
+            <thead class="border-b border-zinc-700/20">
+              <tr>
+                <th class="p-4 text-sm font-semibold">Date</th>
+                <th class="p-4 text-sm font-semibold">Subject</th>
+                <th class="p-4 text-sm font-semibold text-right">Total</th>
+                <th class="p-4 text-sm font-semibold text-right">Correct</th>
+                <th class="p-4 text-sm font-semibold text-right">Score</th>
+                <th class="p-4 text-sm font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in rows %}
+              <tr class="border-b border-zinc-700/20">
+                <td class="p-4 text-sm">{{ r.sdate }}</td>
+                <td class="p-4 text-sm">{{ r.disc or '-' }}</td>
+                <td class="p-4 text-sm text-right">{{ r.q }}</td>
+                <td class="p-4 text-sm text-right">{{ r.a }}</td>
+                <td class="p-4 text-sm text-right font-bold">{{ '%.0f' % (100.0*r.a/r.q) }}%</td>
+                <td class="p-4 text-right"><a class="text-red-600" href="{{ url_for('simulados_del', rid=r.id) }}">Delete</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+function filterTable(q){
+  const rows=[...document.querySelectorAll('#simTable tbody tr')];
+  const qq=q.toLowerCase();
+  rows.forEach(tr=>{
+    const subj=tr.children[1].textContent.toLowerCase();
+    tr.style.display=subj.includes(qq)?'':'none';
+  });
+}
+</script>
+{% endblock %}

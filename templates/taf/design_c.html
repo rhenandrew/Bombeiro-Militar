@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex h-screen">
+  <aside class="w-64 flex-shrink-0 bg-white dark:bg-zinc-800 flex flex-col p-4 border-r border-gray-200 dark:border-gray-700/50">
+    <div class="flex flex-col gap-4">
+      <div class="flex gap-3 items-center">
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuDS2zRpbsaPvzzR02OmshjV0nrPOGNGyInR4o_td4-xnmt2JHNDHdsMdqDAW-de1fFdRTjY119yadxO4LByaAAr98FCW06b9z_J-qS06A0IY0KOWrsEet29YoYL0sBOTI2Hzw5Ofj_Ktpqoc_VL04OLr_PPBguK9sXrNyuaCZG3E7rjdUIUmMFsQaRTZiuXTBMDAYon5d9tZGd1gkCXgQIt9aW5buE010Z8vbaD93SUCkWlr-TsS56XkFeu0akTxktUg11ue7ojwAIZ');"></div>
+        <div class="flex flex-col">
+          <h1 class="text-gray-900 dark:text-white text-base font-medium">Rhenan</h1>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">TAF Tracker</p>
+        </div>
+      </div>
+      <nav class="flex flex-col gap-2 mt-4">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700" href="{{ url_for('calendar_view') }}">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <p class="text-sm font-medium">Study Plan</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700" href="{{ url_for('simulados_view') }}">
+          <span class="material-symbols-outlined">bar_chart</span>
+          <p class="text-sm font-medium">Test Tracker</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30" href="{{ url_for('taf_view') }}">
+          <span class="material-symbols-outlined">fitness_center</span>
+          <p class="text-sm font-bold">TAF Tracker</p>
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto space-y-8">
+      <div class="flex flex-wrap justify-between gap-4 items-center">
+        <div class="flex min-w-72 flex-col gap-1">
+          <p class="text-gray-900 dark:text-white text-3xl md:text-4xl font-black tracking-[-0.033em]">TAF Tracker</p>
+          <p class="text-gray-500 dark:text-gray-400">Ao informar peso, calculamos o BMI (IMC). O gráfico mostra zonas: Abaixo &lt;18.5, Normal 18.5–24.9, Sobrepeso 25–29.9, Obesidade ≥30.</p>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Performance Overview</h2>
+          <div id="metricTabs" class="flex gap-2">
+            <button data-metric="BMI" class="metric-btn active px-3 py-1.5 text-sm font-medium rounded-md bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200">BMI</button>
+            <button data-metric="Running" class="metric-btn px-3 py-1.5 text-sm font-medium rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700">Running</button>
+            <button data-metric="Push-ups" class="metric-btn px-3 py-1.5 text-sm font-medium rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700">Push-ups</button>
+            <button data-metric="Sit-ups" class="metric-btn px-3 py-1.5 text-sm font-medium rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700">Sit-ups</button>
+            <button data-metric="Pull-ups" class="metric-btn px-3 py-1.5 text-sm font-medium rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700">Pull-ups</button>
+          </div>
+        </div>
+        <div class="h-80 relative">
+          <canvas id="tafChart"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 bg-white dark:bg-zinc-800 rounded-xl p-6">
+          <h2 class="text-lg font-bold mb-4">Save Whole Day</h2>
+          <form method="post" action="{{ url_for('taf_add') }}" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium" for="date">Date</label>
+                <input id="date" name="date" type="date" value="{{ date.today().isoformat() }}" class="mt-1 block w-full rounded-md bg-zinc-100 dark:bg-zinc-700 h-10 px-3" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium" for="weight">Weight (kg)</label>
+                <input id="weight" name="weight" type="number" step="0.1" class="mt-1 block w-full rounded-md bg-zinc-100 dark:bg-zinc-700 h-10 px-3" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium" for="running_km">Running (km)</label>
+                <input id="running_km" name="running_km" type="number" step="0.1" class="mt-1 block w-full rounded-md bg-zinc-100 dark:bg-zinc-700 h-10 px-3" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium" for="pushups">Push-ups (reps)</label>
+                <input id="pushups" name="pushups" type="number" class="mt-1 block w-full rounded-md bg-zinc-100 dark:bg-zinc-700 h-10 px-3" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium" for="situps">Sit-ups (reps)</label>
+                <input id="situps" name="situps" type="number" class="mt-1 block w-full rounded-md bg-zinc-100 dark:bg-zinc-700 h-10 px-3" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium" for="pullups">Pull-ups (reps)</label>
+                <input id="pullups" name="pullups" type="number" class="mt-1 block w-full rounded-md bg-zinc-100 dark:bg-zinc-700 h-10 px-3" />
+              </div>
+            </div>
+            <button class="w-full h-10 rounded-lg bg-red-600 text-white">Save Day</button>
+          </form>
+        </div>
+
+        <div class="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6">
+          <h2 class="text-lg font-bold mb-4">Activity History</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-xs uppercase bg-zinc-100 dark:bg-zinc-700">
+                <tr>
+                  <th class="px-6 py-3">Date</th>
+                  <th class="px-6 py-3">Running (km)</th>
+                  <th class="px-6 py-3">Push-ups</th>
+                  <th class="px-6 py-3">Sit-ups</th>
+                  <th class="px-6 py-3">Pull-ups</th>
+                  <th class="px-6 py-3">Weight</th>
+                  <th class="px-6 py-3">BMI</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in rows %}
+                <tr class="border-b border-zinc-700/20">
+                  <td class="px-6 py-4">{{ r.adate }}</td>
+                  <td class="px-6 py-4">{{ r.running_km if r.running_km is not none else '' }}</td>
+                  <td class="px-6 py-4">{{ r.pushups if r.pushups is not none else '' }}</td>
+                  <td class="px-6 py-4">{{ r.situps if r.situps is not none else '' }}</td>
+                  <td class="px-6 py-4">{{ r.pullups if r.pullups is not none else '' }}</td>
+                  <td class="px-6 py-4">{{ r.weight if r.weight is not none else '' }}</td>
+                  <td class="px-6 py-4">{{ ('%.2f' % r.bmi) if r.bmi is not none else '' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('tafChart').getContext('2d');
+const isDark = document.documentElement.classList.contains('dark');
+const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+let chart;
+
+// gradiente âmbar para métricas não-BMI
+function makeAmberGradient(){
+  const g = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+  g.addColorStop(0, 'rgba(245,158,11,0.40)');
+  g.addColorStop(1, 'rgba(245,158,11,0.00)');
+  return g;
+}
+
+// cores por zona BMI
+function bmiLineColor(v){
+  if(v == null) return '#9ca3af';
+  if(v < 18.5) return '#3b82f6';   // abaixo: azul
+  if(v < 25)   return '#10b981';   // adequado: verde
+  if(v < 30)   return '#f59e0b';   // sobrepeso: âmbar
+  return '#ef4444';                // obesidade: vermelho
+}
+function bmiFillColor(v){
+  if(v == null) return 'rgba(156,163,175,0.15)';
+  if(v < 18.5) return 'rgba(59,130,246,0.20)';
+  if(v < 25)   return 'rgba(16,185,129,0.20)';
+  if(v < 30)   return 'rgba(245,158,11,0.20)';
+  return 'rgba(239,68,68,0.20)';
+}
+
+function setActiveMetricButton(metric){
+  document.querySelectorAll('.metric-btn').forEach(btn=>{
+    btn.classList.remove('active','bg-red-100','text-red-700','dark:bg-red-900/30','dark:text-red-200');
+  });
+  const btn = document.querySelector(`.metric-btn[data-metric="${metric}"]`);
+  if(btn){
+    btn.classList.add('active','bg-red-100','text-red-700','dark:bg-red-900/30','dark:text-red-200');
+  }
+}
+
+async function loadMetric(metric='BMI'){
+  const res = await fetch(`/taf/data?metric=${encodeURIComponent(metric)}`);
+  const data = await res.json();
+
+  // dataset base (não-BMI com gradiente âmbar)
+  const ds = {
+    label: metric,
+    data: data.values,
+    borderColor: '#F59E0B',
+    backgroundColor: makeAmberGradient(),
+    tension: 0.35,
+    fill: true,
+    pointRadius: 4,
+    pointBackgroundColor: '#F59E0B',
+    pointBorderColor: isDark ? '#111827' : '#ffffff'
+  };
+
+  let ySuggestedMin, ySuggestedMax;
+
+  if(metric === 'BMI'){
+    // linha e área por segmento, seguindo a zona do ponto destino (p1)
+    ds.segment = {
+      borderColor: ctx => bmiLineColor(ctx.p1.parsed.y),
+      backgroundColor: ctx => bmiFillColor(ctx.p1.parsed.y)
+    };
+    ds.pointBackgroundColor = ctx => bmiLineColor(ctx.parsed.y);
+    ds.pointBorderColor = isDark ? '#111827' : '#ffffff';
+    // o background padrão não interfere; quem pinta é segment.backgroundColor
+    ds.backgroundColor = 'transparent';
+    ds.fill = true; // ativa o “tapete” por segmento
+
+    ySuggestedMin = 15;
+    ySuggestedMax = 35;
+  }
+
+  const cfg = {
+    type: 'line',
+    data: { labels: data.labels, datasets: [ds] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          suggestedMin: ySuggestedMin,
+          suggestedMax: ySuggestedMax,
+          grid: { color: gridColor },
+          ticks: { color: isDark ? '#e5e7eb' : '#374151' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: isDark ? '#e5e7eb' : '#374151' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: metric === 'BMI' ? {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              let zone = '';
+              if(v < 18.5) zone = 'Abaixo do peso';
+              else if(v < 25) zone = 'Peso adequado';
+              else if(v < 30) zone = 'Sobrepeso';
+              else zone = 'Obesidade';
+              return `BMI: ${v?.toFixed?.(2)} — ${zone}`;
+            }
+          } : {}
+        }
+      }
+    }
+  };
+
+  if(chart){ chart.destroy(); }
+  chart = new Chart(ctx, cfg);
+  setActiveMetricButton(metric);
+}
+
+// carrega BMI por padrão
+loadMetric('BMI');
+document.querySelectorAll('.metric-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> loadMetric(btn.dataset.metric));
+});
+</script>
+
+{% endblock %}

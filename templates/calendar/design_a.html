@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex h-screen">
+  <aside class="w-64 flex-shrink-0 bg-white dark:bg-zinc-800 flex flex-col p-4 border-r border-gray-200 dark:border-gray-700">
+    <div class="flex flex-col gap-4">
+      <div class="flex gap-3 items-center">
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuDS2zRpbsaPvzzR02OmshjV0nrPOGNGyInR4o_td4-xnmt2JHNDHdsMdqDAW-de1fFdRTjY119yadxO4LByaAAr98FCW06b9z_J-qS06A0IY0KOWrsEet29YoYL0sBOTI2Hzw5Ofj_Ktpqoc_VL04OLr_PPBguK9sXrNyuaCZG3E7rjdUIUmMFsQaRTZiuXTBMDAYon5d9tZGd1gkCXgQIt9aW5buE010Z8vbaD93SUCkWlr-TsS56XkFeu0akTxktUg11ue7ojwAIZ');"></div>
+        <div class="flex flex-col">
+          <h1 class="text-gray-900 dark:text-white text-base font-medium leading-normal">Rhenan</h1>
+          <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Study Plan</p>
+        </div>
+      </div>
+      <nav class="flex flex-col gap-2 mt-4">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30" href="{{ url_for('calendar_view', month=month, year=year) }}">
+          <span class="material-symbols-outlined text-red-800 dark:text-red-300">calendar_month</span>
+          <p class="text-red-900 dark:text-red-200 text-sm font-bold leading-normal">Study Plan</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700" href="{{ url_for('simulados_view') }}">
+          <span class="material-symbols-outlined">bar_chart</span>
+          <p class="text-sm font-medium leading-normal">Test Tracker</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700" href="{{ url_for('taf_view') }}">
+          <span class="material-symbols-outlined">fitness_center</span>
+          <p class="text-sm font-medium leading-normal">TAF Tracker</p>
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+      <div class="flex-1">
+        <div class="flex flex-wrap justify-between gap-4 items-center mb-6">
+          <div class="flex min-w-72 flex-col gap-1">
+            <p class="text-gray-900 dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">{{ month_name }} {{ year }}</p>
+            <p class="text-gray-500 dark:text-gray-400">Clique no dia para ciclar: ✅ (concluído) → ❌ (não) → vazio. Escrever em um dia conta como “Planned”.</p>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex gap-2">
+              <a class="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-red-900/30" href="{{ url_for('calendar_view', month=prev_m, year=prev_y) }}"><span class="material-symbols-outlined">arrow_back</span></a>
+              <a class="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-red-900/30" href="{{ url_for('calendar_view', month=next_m, year=next_y) }}"><span class="material-symbols-outlined">arrow_forward</span></a>
+            </div>
+            <form method="get" action="{{ url_for('calendar_view') }}" class="flex gap-2">
+              <select name="month" class="rounded-lg bg-zinc-100 dark:bg-zinc-700 px-3 h-10">
+                {% for i,m in months %}
+                  <option value="{{ i }}" {% if i==month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+              </select>
+              <select name="year" class="rounded-lg bg-zinc-100 dark:bg-zinc-700 px-3 h-10">
+                {% for y in years %}
+                  <option value="{{ y }}" {% if y==year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+              </select>
+              <button class="px-3 h-10 rounded-lg bg-red-600 text-white">Go</button>
+            </form>
+          </div>
+
+          <form id="calForm" method="post" action="{{ url_for('calendar_save', month=month, year=year) }}">
+            <div class="grid grid-cols-7 border-t border-l border-gray-200 dark:border-gray-700">
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Sun</div>
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Mon</div>
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Tue</div>
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Wed</div>
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Thu</div>
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Fri</div>
+              <div class="text-xs font-bold uppercase tracking-wider flex h-10 items-center justify-center border-b border-r">Sat</div>
+
+              {% for cell in grid %}
+                {% if not cell.in_month %}
+                  <div class="min-h-[140px] border-b border-r p-2 text-right text-zinc-400"></div>
+                {% else %}
+                  <div class="day-cell min-h-[140px] border-b border-r p-2 text-right relative select-none" data-cdate="{{ cell.cdate }}" data-status="{{ cell.status }}">
+                    <span class="font-bold">{{ cell.day }}</span>
+
+                    {% if cell.status in ['ok','miss'] %}
+                      <div class="marker absolute inset-0 flex items-center justify-center text-6xl pointer-events-none {{ 'text-green-500/70' if cell.status=='ok' else 'text-red-500/70' }}">
+                        {{ '✅' if cell.status=='ok' else '❌' }}
+                      </div>
+                    {% endif %}
+
+                    <textarea name="note_{{ cell.cdate }}" class="note absolute bottom-2 left-2 right-2 text-xs bg-transparent border-none focus:ring-0 resize-none h-20 p-0" placeholder="Plan your day...">{{ cell.note or '' }}</textarea>
+                    <input type="hidden" name="status_{{ cell.cdate }}" value="{{ cell.status }}">
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="flex justify-end mt-3">
+              <button class="px-4 py-2 bg-red-600 text-white rounded-lg">Save Month</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <aside class="w-full lg:w-80 space-y-6">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl p-6">
+          <h2 class="text-lg font-bold mb-2">Monthly Progress</h2>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div><p id="count-ok" class="text-2xl font-bold text-green-500">{{ stats.ok }}</p><p class="text-xs text-zinc-500">Completed</p></div>
+            <div><p id="count-miss" class="text-2xl font-bold text-red-500">{{ stats.miss }}</p><p class="text-xs text-zinc-500">Missed</p></div>
+            <div><p id="count-planned" class="text-2xl font-bold text-amber-500">{{ stats.planned }}</p><p class="text-xs text-zinc-500">Planned</p></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+function setStatusVisual(cell, status){
+  // remove marcador antigo
+  cell.querySelectorAll('.marker').forEach(n=>n.remove());
+  cell.dataset.status = status;
+  const hidden = cell.querySelector('input[type="hidden"]');
+  if(hidden) hidden.value = status;
+
+  if(status === 'ok' || status === 'miss'){
+    const m = document.createElement('div');
+    m.className = 'marker absolute inset-0 flex items-center justify-center text-6xl pointer-events-none ' +
+                  (status==='ok' ? 'text-green-500/70' : 'text-red-500/70');
+    m.textContent = status==='ok' ? '✅' : '❌';
+    cell.appendChild(m);
+  }
+}
+
+function recalcProgress(){
+  const cells = [...document.querySelectorAll('.day-cell')];
+  let ok=0, miss=0, planned=0;
+  for(const c of cells){
+    const status = c.dataset.status || 'none';
+    const note = (c.querySelector('.note')?.value || '').trim();
+    if(status === 'ok') ok++;
+    else if(status === 'miss') miss++;
+    // planejado conta apenas quando tem nota e ainda não foi marcado
+    if(note && status === 'none') planned++;
+  }
+  document.getElementById('count-ok').textContent = ok;
+  document.getElementById('count-miss').textContent = miss;
+  document.getElementById('count-planned').textContent = planned;
+}
+
+document.querySelectorAll('.day-cell').forEach(cell=>{
+  // clique para ciclar: none -> ok -> miss -> none
+  cell.addEventListener('click', (e)=>{
+    if(e.target.classList.contains('note')) return; // não ciclar quando clicar no textarea
+    const current = cell.dataset.status || 'none';
+    const next = current === 'none' ? 'ok' : (current === 'ok' ? 'miss' : 'none');
+    setStatusVisual(cell, next);
+    recalcProgress();
+  });
+});
+
+// atualizar Planned em tempo real ao digitar
+document.querySelectorAll('.note').forEach(t=>{
+  ['input','change','keyup'].forEach(ev=>{
+    t.addEventListener(ev, recalcProgress);
+  });
+});
+
+// cálculo inicial ao carregar
+recalcProgress();
+</script>
+{% endblock %}
